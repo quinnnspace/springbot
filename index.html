@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <title>springbot</title>
+        <script src="phaser.min.js"></script>
+        <style type="text/css">
+            body {
+                margin: 0;
+            }
+        </style>
+    </head>
+    <body>
+
+    <script type="text/javascript">
+        
+
+    window.onload = function() {
+
+        var game = new Phaser.Game(400, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
+
+        function preload () {
+
+            game.load.spritesheet('springbot', 'assets/springbot.png', 64, 136, 25);
+            game.load.image('bg', 'assets/bg.png');
+            
+            game.load.audio('spin', 'assets/spin.wav');
+            game.load.audio('jump', 'assets/jump.wav');
+
+        }
+        
+        var springbot;
+        var animation;
+        
+        var storedEnergy;
+        var remainingVelocity;
+        
+        var spinSound;
+        var jumpSound;
+
+        function create () {
+            
+            game.stage.disableVisibilityChange = true;
+            
+            game.input.mouse.capture = true;
+            
+            game.physics.startSystem(Phaser.Physics.ARCADE);
+            
+            game.add.sprite(0, 0, 'bg');
+
+            springbot = game.add.sprite(game.world.centerX, game.world.height, 'springbot');
+            springbot.anchor.setTo(0.5, 1);
+            springbot.animations.add('down', null, 12, false);
+            
+            animation = springbot.animations.play('down');
+            animation.paused = true;
+            game.physics.arcade.enable(springbot);
+            springbot.body.gravity.y = 320;
+            springbot.body.collideWorldBounds = true;
+            
+            spinSound = game.add.audio('spin', 0.6);
+            jumpSound = game.add.audio('jump', 0.77);
+        }
+        
+        function update () {
+            if ((game.input.activePointer.isDown || remainingVelocity > 75) && springbot.body.velocity.y === 0) {
+                remainingVelocity -= 27;
+                animation.next(1);
+                storedEnergy = animation.frame;
+                if (!spinSound.isPlaying && animation.frame < 24) spinSound.play();
+            } else if (animation.frame > 0) {
+                animation.previous(1);
+                if (!spinSound.isPlaying && animation.frame < 24) spinSound.play();
+            } else if (storedEnergy > 0) {
+                spinSound.stop();
+                springbot.body.velocity.y = -21 * storedEnergy;
+                jumpSound.play();
+                storedEnergy = 0;
+            }
+            
+            if (springbot.body.velocity.y > 0) {
+                // Store latest non-zero velocity to store in spring
+                remainingVelocity = springbot.body.velocity.y;
+            }
+        }
+
+    };
+    
+
+    </script>
+
+ <script>  
+    
+ </script>  
+    </body>
+</html>
